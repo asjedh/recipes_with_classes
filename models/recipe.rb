@@ -8,12 +8,36 @@ class Recipe
     @instructions = instructions
   end
 
-
-
+  ############################
+  ##### INSTANCE METHODS #####
+  ############################
 
   def ingredients
+    # if you call this method on a recipe, you should look at the recipe id,
+    # go to the ingredients table, find all the ingredients, then put them into
+    # and array of Ingredient instance
+    query = "SELECT ingredients.name FROM ingredients
+             JOIN recipes ON recipes.id = ingredients.recipe_id
+             WHERE recipes.id = $1
+             ORDER BY ingredients.name"
 
+    ingredients = self.class.recipesdb_conn do |conn|
+      conn.exec_params(query,[id])
+    end.to_a.map { |ingredient| Ingredient.new(ingredient['name'])}
   end
+
+# query = "SELECT ingredients.name FROM ingredients
+#              JOIN recipes ON recipes.id = ingredients.recipe_id
+#              WHERE recipes.id = 508
+#              ORDER BY ingredients.name"
+
+# db_conn do |conn|
+#   conn.exec_params(query)
+# end
+
+  #########################
+  ##### CLASS METHODS #####
+  #########################
 
   def self.recipesdb_conn
     begin
@@ -31,7 +55,7 @@ class Recipe
 
     recipesdb_conn do |conn|
       conn.exec(query)
-    end.to_a.map { |recipe| Recipe.new(recipe['id'], recipe['name'], recipe['description'], recipe['instructions']) }
+    end.to_a.map { |recipe| Recipe.new(recipe['id'], recipe['name'], recipe['description'] || "This recipe doesn't have a description.", recipe['instructions'] || "This recipe doesn't have any instructions.") }
   end
 
   def self.find(id)
@@ -40,7 +64,7 @@ class Recipe
     recipe_hash = recipesdb_conn do |conn|
       conn.exec_params(query,[id])
     end.to_a[0]
-    Recipe.new(recipe_hash['id'], recipe_hash['name'], recipe_hash['description'], recipe_hash['instructions'])
+    Recipe.new(recipe_hash['id'], recipe_hash['name'], recipe_hash['description'] || "This recipe doesn't have a description.", recipe_hash['instructions'] || "This recipe doesn't have any instructions.")
   end
 end
 
