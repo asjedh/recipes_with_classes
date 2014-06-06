@@ -21,19 +21,11 @@ class Recipe
              WHERE recipes.id = $1
              ORDER BY ingredients.name"
 
-    ingredients = self.class.recipesdb_conn do |conn|
+    self.class.recipesdb_conn do |conn|
       conn.exec_params(query,[id])
     end.to_a.map { |ingredient| Ingredient.new(ingredient['name'])}
   end
 
-# query = "SELECT ingredients.name FROM ingredients
-#              JOIN recipes ON recipes.id = ingredients.recipe_id
-#              WHERE recipes.id = 508
-#              ORDER BY ingredients.name"
-
-# db_conn do |conn|
-#   conn.exec_params(query)
-# end
 
   #########################
   ##### CLASS METHODS #####
